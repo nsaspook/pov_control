@@ -25,6 +25,8 @@
 #define B 4
 
 typedef struct L_seq {
+	uint8_t cmd;
+	uint8_t pos;
 	uint8_t down : 1; // rotation direction
 	uint8_t RGB : 3;
 	uint8_t end : 1; // last line in sequence
@@ -45,12 +47,16 @@ union {
 
 static const L_data sequ[] = {
 	{
+		.sequence.cmd = 'u',
+		.sequence.pos = 0,
 		.strobe = 60000,
 		.sequence.offset = 360,
 		.sequence.down = 1,
 		.sequence.RGB = R,
 	},
 	{
+		.sequence.cmd = 'u',
+		.sequence.pos = 1,
 		.strobe = 50000,
 		.sequence.offset = 60,
 		.sequence.down = 1,
