@@ -50,34 +50,26 @@ int main(int argc, char** argv)
 	if (fd == -1)
 		return(EXIT_FAILURE);
 	/*
-	 * Get the current options for the port...
+	 * Set options for the port...
 	 */
 
 	tcgetattr(fd, &options);
-
-	/*
-	 * Set the baud rates to 19200...
-	 */
-
 	cfsetispeed(&options, B9600);
 	cfsetospeed(&options, B9600);
-
-	/*
-	 * Enable the receiver and set local mode...
-	 */
-
 	options.c_cflag |= (CLOCAL | CREAD);
-
-	/*
-	 * Set the new options for the port...
-	 */
-
+	options.c_cflag &= ~PARENB;
+	options.c_cflag &= ~CSTOPB;
+	options.c_cflag &= ~CSIZE;
+	options.c_cflag |= CS8;
 	tcsetattr(fd, TCSANOW, &options);
 
-	n = write(fd, "ATZ\r", 4);
-	if (n < 0)
-		fputs("write() of 4 bytes failed!\n", stderr);
-
+	n = write(fd, "U\0\0\0\0\0\0", 7);
+	if (n < 0) {
+		fputs("write() of 7 bytes failed!\n", stderr);
+		return(EXIT_FAILURE);
+	}
+	write(fd, "U\1\0\0\0\0\0", 7);
+	write(fd, "U\2\0\0\0\0\0", 7);
 
 	close(fd);
 	return(EXIT_SUCCESS);
