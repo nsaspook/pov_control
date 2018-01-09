@@ -15,9 +15,48 @@
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
+#include <stdint.h>
 #include <fcntl.h>   /* File control definitions */
 #include <errno.h>   /* Error number definitions */
 #include <termios.h> /* POSIX terminal control definitions */
+
+#define R 1
+#define G 2
+#define B 4
+
+typedef struct L_seq {
+	uint8_t down : 1; // rotation direction
+	uint8_t RGB : 3;
+	uint8_t end : 1; // last line in sequence
+	uint8_t skip : 1; // don't light led
+	uint16_t offset; // line movement 
+} L_seq;
+
+/* data for one complete rotation*/
+typedef struct L_data {
+	struct L_seq sequence;
+	uint16_t strobe;
+} L_data;
+
+union {
+	struct L_data dbuffer;
+	uint8_t bbuffer[16];
+} lbuffer;
+
+static const L_data sequ[] = {
+	{
+		.strobe = 60000,
+		.sequence.offset = 360,
+		.sequence.down = 1,
+		.sequence.RGB = R,
+	},
+	{
+		.strobe = 50000,
+		.sequence.offset = 60,
+		.sequence.down = 1,
+		.sequence.RGB = G,
+	},
+};
 
 struct termios options;
 
@@ -54,8 +93,8 @@ int main(int argc, char** argv)
 	 */
 
 	tcgetattr(fd, &options);
-	cfsetispeed(&options, B9600);
-	cfsetospeed(&options, B9600);
+	cfsetispeed(&options, B57600);
+	cfsetospeed(&options, B57600);
 	options.c_cflag |= (CLOCAL | CREAD);
 	options.c_cflag &= ~PARENB;
 	options.c_cflag &= ~CSTOPB;
@@ -63,13 +102,11 @@ int main(int argc, char** argv)
 	options.c_cflag |= CS8;
 	tcsetattr(fd, TCSANOW, &options);
 
-	n = write(fd, "U\0\0\0\0\0\0", 7);
-	if (n < 0) {
-		fputs("write() of 7 bytes failed!\n", stderr);
-		return(EXIT_FAILURE);
-	}
-	write(fd, "U\1\0\0\0\0\0", 7);
+	lbuffer.dbuffer = sequ[0];
+	write(fd, (uint8_t*) lbuffer.bbuffer, 7);
 	write(fd, "U\2\0\0\0\0\0", 7);
+	lbuffer.dbuffer = sequ[1];
+	write(fd, (uint8_t*) lbuffer.bbuffer, 7);
 
 	close(fd);
 	return(EXIT_SUCCESS);
