@@ -68,6 +68,10 @@ static const L_data sequ[] = {
 		.sequence.down = 1,
 		.sequence.RGB = G,
 	},
+	{
+		.prefix.cmd = 'E',
+		.prefix.pos = 1,
+	},
 };
 #pragma pack(pop)
 
@@ -120,6 +124,9 @@ int main(int argc, char** argv)
 
 	lbuffer.dbuffer = sequ[1];
 	write(fd, (uint8_t*) lbuffer.bbuffer, 7);
+
+	lbuffer.dbuffer = sequ[2];
+	write(fd, (uint8_t*) lbuffer.bbuffer, 2);
 
 	close(fd);
 	return(EXIT_SUCCESS);
