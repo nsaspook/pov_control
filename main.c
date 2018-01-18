@@ -73,6 +73,9 @@ static const L_data sequ[] = {
 		.prefix.pos = 1,
 	},
 };
+
+static const uint8_t init_string[]="zzzzzzzi";
+
 #pragma pack(pop)
 
 struct termios options;
@@ -118,6 +121,8 @@ int main(int argc, char** argv)
 	options.c_cflag &= ~CSIZE;
 	options.c_cflag |= CS8;
 	tcsetattr(fd, TCSANOW, &options);
+	
+	write(fd, init_string,8); // send init and info string
 
 	lbuffer.dbuffer = sequ[0];
 	write(fd, (uint8_t*) lbuffer.bbuffer, 7);

@@ -9,19 +9,19 @@ CND_DISTDIR=dist
 # Debug configuration
 CND_PLATFORM_Debug=GNU-Linux
 CND_ARTIFACT_DIR_Debug=dist/Debug/GNU-Linux
-CND_ARTIFACT_NAME_Debug=pov_control
-CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux/pov_control
+CND_ARTIFACT_NAME_Debug=hd_pov
+CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux/hd_pov
 CND_PACKAGE_DIR_Debug=dist/Debug/GNU-Linux/package
-CND_PACKAGE_NAME_Debug=povcontrol.tar
-CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux/package/povcontrol.tar
+CND_PACKAGE_NAME_Debug=hdpov.tar
+CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux/package/hdpov.tar
 # Release configuration
 CND_PLATFORM_Release=GNU-Linux
 CND_ARTIFACT_DIR_Release=dist/Release/GNU-Linux
-CND_ARTIFACT_NAME_Release=pov_control
-CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux/pov_control
+CND_ARTIFACT_NAME_Release=hd_pov
+CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux/hd_pov
 CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux/package
-CND_PACKAGE_NAME_Release=povcontrol.tar
-CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux/package/povcontrol.tar
+CND_PACKAGE_NAME_Release=hdpov.tar
+CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux/package/hdpov.tar
 #
 # include compiler specific variables
 #
