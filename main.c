@@ -215,8 +215,8 @@ int main(int argc, char** argv)
 	sleep(3);
 
 	do {
-		d_sequ[0].strobe = (uint16_t) deg_counts(1.0 + (n * 5.9));
-		d_sequ[1].strobe = (uint16_t) deg_counts(45.01 + (n * 4.0));
+		d_sequ[0].strobe = (uint16_t) deg_counts(1.0 + ((double) n * 5.9));
+		d_sequ[1].strobe = (uint16_t) deg_counts(45.01 + ((double) n * 4.0));
 
 		printf("\r\n %i %i", (int) d_sequ[0].strobe, (int) d_sequ[1].strobe);
 
