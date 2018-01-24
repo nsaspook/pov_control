@@ -38,76 +38,76 @@ double timer_deg_count = timer_range;
 #pragma pack(push,1) // pack it compatiable with the PIC18 and xc8
 
 typedef struct L_prefix {
-	uint8_t cmd;
-	uint8_t pos;
+    uint8_t cmd;
+    uint8_t pos;
 } L_prefix;
 
 typedef struct L_seq {
-	uint8_t down : 1; // rotation direction
-	uint8_t RGB : 3;
-	uint8_t end : 1; // last line in sequence
-	uint8_t skip : 1; // don't light led
-	uint16_t offset; // line movement 
+    uint8_t down : 1; // rotation direction
+    uint8_t RGB : 3;
+    uint8_t end : 1; // last line in sequence
+    uint8_t skip : 1; // don't light led
+    uint16_t offset; // line movement 
 } L_seq;
 
 /* data for one complete rotation*/
 typedef struct L_data {
-	struct L_prefix prefix;
-	struct L_seq sequence;
-	uint16_t strobe;
+    struct L_prefix prefix;
+    struct L_seq sequence;
+    uint16_t strobe;
 } L_data;
 
 union {
-	struct L_data dbuffer;
-	uint8_t bbuffer[16];
+    struct L_data dbuffer;
+    uint8_t bbuffer[16];
 } lbuffer;
 
 static const L_data sequ[] = {
-	{
-		.prefix.cmd = 'u',
-		.prefix.pos = 0,
-		.strobe = 60000,
-		.sequence.offset = 360,
-		.sequence.down = 1,
-		.sequence.RGB = R,
-	},
-	{
-		.prefix.cmd = 'u',
-		.prefix.pos = 1,
-		.strobe = 50000,
-		.sequence.offset = 360,
-		.sequence.down = 1,
-		.sequence.RGB = G,
-		.sequence.end = 1,
-	},
-	{
-		.prefix.cmd = 'E',
-		.prefix.pos = 1,
-	},
+    {
+        .prefix.cmd = 'u',
+        .prefix.pos = 0,
+        .strobe = 60000,
+        .sequence.offset = 360,
+        .sequence.down = 1,
+        .sequence.RGB = R,
+    },
+    {
+        .prefix.cmd = 'u',
+        .prefix.pos = 1,
+        .strobe = 50000,
+        .sequence.offset = 360,
+        .sequence.down = 1,
+        .sequence.RGB = G,
+        .sequence.end = 1,
+    },
+    {
+        .prefix.cmd = 'E',
+        .prefix.pos = 1,
+    },
 };
 
 static L_data d_sequ[] = {
-	{
-		.prefix.cmd = 'u',
-		.prefix.pos = 0,
-		.strobe = 60000,
-		.sequence.offset = 0,
-		.sequence.down = 1,
-		.sequence.RGB = R,
-	},
-	{
-		.prefix.cmd = 'u',
-		.prefix.pos = 1,
-		.strobe = 50000,
-		.sequence.offset = 0,
-		.sequence.down = 1,
-		.sequence.RGB = G + B,
-		.sequence.end = 1,
-	},
-	{
-		.prefix.cmd = 'E',
-		.prefix.pos = 1,
-	},
+    {
+        .prefix.cmd = 'u',
+        .prefix.pos = 0,
+        .strobe = 60000,
+        .sequence.offset = 0,
+        .sequence.down = 1,
+        .sequence.RGB = R,
+    },
+    {
+        .prefix.cmd = 'u',
+        .prefix.pos = 1,
+        .strobe = 50000,
+        .sequence.offset = 0,
+        .sequence.down = 1,
+        .sequence.RGB = G + B,
+        .sequence.end = 1,
+    },
+    {
+        .prefix.cmd = 'E',
+        .prefix.pos = 1,
+    },
 };
 
 static const uint8_t init_string[] = "zzzzzzzi";
@@ -117,116 +117,112 @@ static const uint8_t init_string[] = "zzzzzzzi";
 struct termios options;
 int usleep(int);
 
-uint16_t deg_counts(double d)
-{
-	double val;
+uint16_t deg_counts(double d) {
+    double val;
 
-	if (d > 0.0) {
-		val = timer_max - (d * timer_slope_deg);
-	} else {
-		val = timer_offset + (d * timer_slope_deg);
-	}
-	return(uint16_t) val;
+    if (d > 0.0) {
+        val = timer_max - (d * timer_slope_deg);
+    } else {
+        val = timer_offset + (d * timer_slope_deg);
+    }
+    return (uint16_t) val;
 }
 
-uint16_t rad_counts(double d)
-{
-	double val;
+uint16_t rad_counts(double d) {
+    double val;
 
-	if (d > 0.0) {
-		val = timer_max - (d * timer_slope_rad);
-	} else {
-		val = timer_offset + (d * timer_slope_rad);
-	}
-	return(uint16_t) val;
+    if (d > 0.0) {
+        val = timer_max - (d * timer_slope_rad);
+    } else {
+        val = timer_offset + (d * timer_slope_rad);
+    }
+    return (uint16_t) val;
 }
 
-int open_port(void)
-{
-	int fd; /* File descriptor for the port */
+int open_port(void) {
+    int fd; /* File descriptor for the port */
 
 
-	fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY | O_NDELAY);
-	if (fd == -1) {
-		/*
-		 * Could not open the port.
-		 */
+    fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY | O_NDELAY);
+    if (fd == -1) {
+        /*
+         * Could not open the port.
+         */
 
-		perror("open_port: Unable to open /dev/ttyS0 - ");
-	} else
-		fcntl(fd, F_SETFL, 0);
+        perror("open_port: Unable to open /dev/ttyS0 - ");
+    } else
+        fcntl(fd, F_SETFL, 0);
 
-	return(fd);
+    return (fd);
 }
 
-int l_pos_send(int fd, L_data l)
-{
-	int ret;
+int l_pos_send(int fd, L_data l) {
+    int ret;
 
-	lbuffer.dbuffer = l;
-	ret = write(fd, (uint8_t*) lbuffer.bbuffer, 7);
-	usleep(15000);
-	return ret;
+    lbuffer.dbuffer = l;
+    ret = write(fd, (uint8_t*) lbuffer.bbuffer, 7);
+    usleep(15000);
+    return ret;
 }
 
-int l_pos_send_cmd(int fd, L_data l)
-{
-	int ret;
+int l_pos_send_cmd(int fd, L_data l) {
+    int ret;
 
-	lbuffer.dbuffer = l;
-	ret = write(fd, (uint8_t*) lbuffer.bbuffer, 2);
-	usleep(15000);
-	return ret;
+    lbuffer.dbuffer = l;
+    ret = write(fd, (uint8_t*) lbuffer.bbuffer, 2);
+    usleep(15000);
+    return ret;
 }
 
 /*
  * 
  */
-int main(int argc, char** argv)
-{
-	int fd, n = 0;
-	double deg, rad;
+int main(int argc, char** argv) {
+    int fd, n = 0;
+    double deg, rad;
 
-	fd = open_port();
-	if (fd == -1)
-		return(EXIT_FAILURE);
-	/*
-	 * Set options for the port...
-	 */
-	deg = timer_deg_count / 360;
-	rad = timer_deg_count / (2.0 * _PI);
-	printf("\r\n %f timer counts per degree %f, counts per radian %f : counts %i ", timer_deg_count, deg, rad, (int) deg_counts(45.0));
+    fd = open_port();
+    if (fd == -1)
+        return (EXIT_FAILURE);
+    /*
+     * Set options for the port...
+     */
+    deg = timer_deg_count / 360;
+    rad = timer_deg_count / (2.0 * _PI);
+    printf("\r\n %f timer counts per degree %f, counts per radian %f : counts %i ", timer_deg_count, deg, rad, (int) deg_counts(45.0));
 
-	tcgetattr(fd, &options);
-	cfsetispeed(&options, B19200);
-	cfsetospeed(&options, B19200);
-	options.c_cflag |= (CLOCAL | CREAD);
-	options.c_cflag &= ~PARENB;
-	options.c_cflag &= ~CSTOPB;
-	options.c_cflag &= ~CSIZE;
-	options.c_cflag |= CS8;
-	tcsetattr(fd, TCSANOW, &options);
+    tcgetattr(fd, &options);
+    cfsetispeed(&options, B19200);
+    cfsetospeed(&options, B19200);
+    options.c_cflag |= (CLOCAL | CREAD);
+    options.c_cflag &= ~PARENB;
+    options.c_cflag &= ~CSTOPB;
+    options.c_cflag &= ~CSIZE;
+    options.c_cflag |= CS8;
+    tcsetattr(fd, TCSANOW, &options);
 
-	write(fd, init_string, 8); // send init and info string
+    write(fd, init_string, 8); // send init and info string
 
-	l_pos_send(fd, sequ[0]);
-	l_pos_send(fd, sequ[1]);
-	l_pos_send_cmd(fd, sequ[2]);
-	sleep(3);
+    l_pos_send(fd, sequ[0]);
+    l_pos_send(fd, sequ[1]);
+    l_pos_send_cmd(fd, sequ[2]);
+    sleep(3);
 
-	do {
-		d_sequ[0].strobe = (uint16_t) deg_counts(1.0 + ((double) n * 5.9));
-		d_sequ[1].strobe = (uint16_t) deg_counts(45.01 + ((double) n * 4.0));
+    do {
+        d_sequ[0].strobe = (uint16_t) deg_counts(1.0 + ((double) n * 0.09));
+        d_sequ[1].strobe = (uint16_t) deg_counts(45.01 + ((double) n * 0.05));
+        //        d_sequ[0].strobe = (uint16_t) deg_counts(0.0);
+        //        d_sequ[1].strobe = (uint16_t) deg_counts(360.0);
 
-		printf("\r\n %i %i", (int) d_sequ[0].strobe, (int) d_sequ[1].strobe);
+        printf("\r\n %i %i", (int) d_sequ[0].strobe, (int) d_sequ[1].strobe);
 
-		l_pos_send(fd, d_sequ[0]);
-		l_pos_send(fd, d_sequ[1]);
+        l_pos_send(fd, d_sequ[0]);
+        l_pos_send(fd, d_sequ[1]);
 
-	} while (++n < 60);
+    } while (++n < 1450);
 
-	sleep(1);
-	close(fd);
-	return(EXIT_SUCCESS);
+    sleep(1);
+    close(fd);
+    return (EXIT_SUCCESS);
 }
 
