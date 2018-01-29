@@ -35,12 +35,13 @@
 
 double timer_deg_count = timer_range;
 
-#pragma pack(push,1) // pack it compatiable with the PIC18 and xc8
-
 typedef struct S_type {
 	uint16_t strobe[16];
-	double pos[16];
+	double pos[16], deg, rad;
+	int n, fd;
 } S_type;
+
+#pragma pack(push,1) // pack it compatiable with the PIC18 and xc8
 
 typedef struct L_prefix {
 	uint8_t cmd;
@@ -195,20 +196,18 @@ int l_pos_send_cmd(int fd, L_data l)
  */
 int main(int argc, char** argv)
 {
-	int fd, n = 0;
-	double deg, rad;
-
-	fd = open_port();
-	if (fd == -1)
+	s.n = 0;
+	s.fd = open_port();
+	if (s.fd == -1)
 		return(EXIT_FAILURE);
 	/*
 	 * Set options for the port...
 	 */
-	deg = timer_deg_count / 360;
-	rad = timer_deg_count / (2.0 * _PI);
-	printf("\r\n %f timer counts per degree %f, counts per radian %f : counts %i ", timer_deg_count, deg, rad, (int) deg_counts(45.0));
+	s.deg = timer_deg_count / 360;
+	s.rad = timer_deg_count / (2.0 * _PI);
+	printf("\r\n %f timer counts per degree %f, counts per radian %f : counts %i ", timer_deg_count, s.deg, s.rad, (int) deg_counts(45.0));
 
-	tcgetattr(fd, &options);
+	tcgetattr(s.fd, &options);
 	cfsetispeed(&options, B19200);
 	cfsetospeed(&options, B19200);
 	options.c_cflag |= (CLOCAL | CREAD);
@@ -216,19 +215,19 @@ int main(int argc, char** argv)
 	options.c_cflag &= ~CSTOPB;
 	options.c_cflag &= ~CSIZE;
 	options.c_cflag |= CS8;
-	tcsetattr(fd, TCSANOW, &options);
+	tcsetattr(s.fd, TCSANOW, &options);
 
-	write(fd, init_string, 8); // send init and info string
+	write(s.fd, init_string, 8); // send init and info string
 
-	l_pos_send(fd, sequ[0]);
-	l_pos_send(fd, sequ[1]);
-	l_pos_send_cmd(fd, sequ[2]);
+	l_pos_send(s.fd, sequ[0]);
+	l_pos_send(s.fd, sequ[1]);
+	l_pos_send_cmd(s.fd, sequ[2]);
 	sleep(3);
 
 	do {
 		// state calc
-		s.pos[0] = 1.0 + ((double) n * 0.09);
-		s.pos[1] = 45.01 + ((double) n * 0.05);
+		s.pos[0] = 1.0 + ((double) s.n * 0.09);
+		s.pos[1] = 45.01 + ((double) s.n * 0.05);
 		s.strobe[0] = deg_counts(s.pos[0]);
 		s.strobe[1] = deg_counts(s.pos[1]);
 		printf("\r\n %i %i  %f %f", (int) s.strobe[0], (int) s.strobe[1], s.pos[0], s.pos[1]);
@@ -240,13 +239,13 @@ int main(int argc, char** argv)
 		//        d_sequ[0].strobe = (uint16_t) deg_counts(0.0);
 		//        d_sequ[1].strobe = (uint16_t) deg_counts(360.0);
 
-		l_pos_send(fd, d_sequ[0]);
-		l_pos_send(fd, d_sequ[1]);
+		l_pos_send(s.fd, d_sequ[0]);
+		l_pos_send(s.fd, d_sequ[1]);
 
-	} while (++n < 1450);
+	} while (++s.n < 1450);
 
 	sleep(1);
-	close(fd);
+	close(s.fd);
 	return(EXIT_SUCCESS);
 }
 
