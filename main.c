@@ -175,8 +175,8 @@ int l_pos_send(int fd, L_data l)
 	//	lbuffer.bbuffer[0]=0x0f;
 	//	lbuffer.bbuffer[1]=0xff;
 	ret = write(fd, (uint8_t*) lbuffer.bbuffer, 7);
+	//	tcflush(fd, TCIOFLUSH);
 	usleep(15000);
-	tcflush(fd, TCIOFLUSH);
 	return ret;
 }
 
@@ -186,8 +186,8 @@ int l_pos_send_cmd(int fd, L_data l)
 
 	lbuffer.dbuffer = l;
 	ret = write(fd, (uint8_t*) lbuffer.bbuffer, 2);
+	//        tcflush(fd, TCIOFLUSH);
 	usleep(15000);
-	tcflush(fd, TCIOFLUSH);
 	return ret;
 }
 
@@ -215,7 +215,11 @@ int main(int argc, char** argv)
 	options.c_cflag &= ~CSTOPB;
 	options.c_cflag &= ~CSIZE;
 	options.c_cflag |= CS8;
+	options.c_lflag &= ~(ICANON | ECHO); /* Clear ICANON and ECHO. */
+	options.c_cc[VMIN] = 1;
+	options.c_cc[VTIME] = 0;
 	tcsetattr(s.fd, TCSANOW, &options);
+	tcflush(s.fd, TCIOFLUSH);
 
 	write(s.fd, init_string, 8); // send init and info string
 
@@ -240,7 +244,7 @@ int main(int argc, char** argv)
 		//        d_sequ[1].strobe = (uint16_t) deg_counts(360.0);
 
 		l_pos_send(s.fd, d_sequ[0]);
-		l_pos_send(s.fd, d_sequ[1]);
+		//		l_pos_send(s.fd, d_sequ[1]);
 
 	} while (++s.n < 1450);
 
