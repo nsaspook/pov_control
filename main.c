@@ -173,7 +173,7 @@ int l_pos_send(int fd, L_data l)
 
 	lbuffer.dbuffer = l;
 	ret = write(fd, (uint8_t*) lbuffer.bbuffer, 7);
-	usleep(38000);
+	usleep(15000);
 	tcflush(fd, TCIOFLUSH);
 	return ret;
 }
@@ -184,7 +184,7 @@ int l_pos_send_cmd(int fd, L_data l)
 
 	lbuffer.dbuffer = l;
 	ret = write(fd, (uint8_t*) lbuffer.bbuffer, 2);
-	usleep(18000);
+	usleep(15000);
 	tcflush(fd, TCIOFLUSH);
 	return ret;
 }
@@ -205,7 +205,7 @@ int main(int argc, char** argv)
 	s.rad = timer_deg_count / (2.0 * _PI);
 	printf("\r\n %f timer counts per degree %f, counts per radian %f : counts %i ", timer_deg_count, s.deg, s.rad, (int) deg_counts(45.0));
 
-        /* set port raw and speed options */
+	/* set port raw and speed options */
 	tcgetattr(s.fd, &options);
 	cfsetispeed(&options, B19200);
 	cfsetospeed(&options, B19200);
@@ -222,7 +222,7 @@ int main(int argc, char** argv)
 	tcsetattr(s.fd, TCSANOW, &options);
 	tcflush(s.fd, TCIOFLUSH);
 
-	write(s.fd, init_string, 8); // send init and info string
+	write(s.fd, init_string, 8); // send init, info string and line data
 
 	l_pos_send(s.fd, sequ[0]);
 	l_pos_send(s.fd, sequ[1]);
@@ -231,8 +231,8 @@ int main(int argc, char** argv)
 
 	do {
 		// state calc
-		s.pos[0] = 10.0 + ((double) s.n * 0.09);
-		s.pos[1] = 55.702 + ((double) s.n * 0.0001);
+		s.pos[0] = 10.0 + ((double) s.n * 0.24);
+		s.pos[1] = 45.00 + ((double) s.n * 0.15);
 		s.strobe[0] = deg_counts(s.pos[0]);
 		s.strobe[1] = deg_counts(s.pos[1]);
 		printf("\r\n %i %i  %f %f", (int) s.strobe[0], (int) s.strobe[1], s.pos[0], s.pos[1]);
@@ -244,10 +244,10 @@ int main(int argc, char** argv)
 		//        d_sequ[0].strobe = (uint16_t) deg_counts(9.0);
 		//        d_sequ[1].strobe = (uint16_t) deg_counts(61.0);
 
-		//        l_pos_send(s.fd, d_sequ[0]);
+		l_pos_send(s.fd, d_sequ[0]);
 		l_pos_send(s.fd, d_sequ[1]);
 
-	} while (++s.n < 200);
+	} while (++s.n < 1400);
 
 	sleep(1);
 	close(s.fd);
