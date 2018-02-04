@@ -205,6 +205,7 @@ int main(int argc, char** argv)
 	s.rad = timer_deg_count / (2.0 * _PI);
 	printf("\r\n %f timer counts per degree %f, counts per radian %f : counts %i ", timer_deg_count, s.deg, s.rad, (int) deg_counts(45.0));
 
+        /* set port raw and speed options */
 	tcgetattr(s.fd, &options);
 	cfsetispeed(&options, B19200);
 	cfsetospeed(&options, B19200);
