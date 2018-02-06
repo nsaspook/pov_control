@@ -84,7 +84,6 @@ static const L_data sequ[] = {
 		.sequence.offset = 360,
 		.sequence.down = 1,
 		.sequence.RGB = G,
-		.sequence.end = 1,
 	},
 	{
 		.prefix.cmd = 'E',
@@ -108,11 +107,43 @@ static L_data d_sequ[] = {
 		.sequence.offset = 0,
 		.sequence.down = 1,
 		.sequence.RGB = G + B,
+	},
+	{
+		.prefix.cmd = 'u',
+		.prefix.pos = 2,
+		.strobe = 40000,
+		.sequence.offset = 200,
+		.sequence.down = 0,
+		.sequence.RGB = R + B,
+	},
+	{
+		.prefix.cmd = 'u',
+		.prefix.pos = 3,
+		.strobe = 30000,
+		.sequence.offset = 360,
+		.sequence.down = 1,
+		.sequence.RGB = G + R,
+	},
+	{
+		.prefix.cmd = 'u',
+		.prefix.pos = 4,
+		.strobe = 55000,
+		.sequence.offset = 100,
+		.sequence.down = 1,
+		.sequence.RGB = G,
+	},
+	{
+		.prefix.cmd = 'u',
+		.prefix.pos = 5,
+		.strobe = 45000,
+		.sequence.offset = 400,
+		.sequence.down = 0,
+		.sequence.RGB = B,
 		.sequence.end = 1,
 	},
 	{
 		.prefix.cmd = 'E',
-		.prefix.pos = 1,
+		.prefix.pos = 5,
 	},
 };
 
@@ -226,7 +257,11 @@ int main(int argc, char** argv)
 
 	l_pos_send(s.fd, sequ[0]);
 	l_pos_send(s.fd, sequ[1]);
-	l_pos_send_cmd(s.fd, sequ[2]);
+	l_pos_send(s.fd, d_sequ[2]);
+	l_pos_send(s.fd, d_sequ[3]);
+	l_pos_send(s.fd, d_sequ[4]);
+	l_pos_send(s.fd, d_sequ[5]);
+	l_pos_send_cmd(s.fd, d_sequ[6]);
 	sleep(3);
 
 	do {
