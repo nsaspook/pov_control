@@ -52,6 +52,8 @@ typedef struct L_seq {
 	uint8_t RGB : 3;
 	uint8_t end : 1; // last line in sequence
 	uint8_t skip : 1; // don't light led
+	uint8_t rot : 1; // rotation and sequence flags
+	uint8_t seq : 1;
 	uint16_t offset; // line movement 
 } L_seq;
 
