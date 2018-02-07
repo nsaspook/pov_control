@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=hd_pov
+PROJECTNAME=pov_control
 
 # Active Configuration
 DEFAULTCONF=Debug
