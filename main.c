@@ -35,12 +35,13 @@
 
 double timer_deg_count = timer_range;
 
-#pragma pack(push,1) // pack it compatiable with the PIC18 and xc8
-
 typedef struct S_type {
 	uint16_t strobe[16];
-	double pos[16];
+	double pos[16], deg, rad;
+	int n, fd;
 } S_type;
+
+#pragma pack(push,1) // pack it compatiable with the PIC18 and xc8
 
 typedef struct L_prefix {
 	uint8_t cmd;
@@ -85,7 +86,6 @@ static const L_data sequ[] = {
 		.sequence.offset = 360,
 		.sequence.down = 1,
 		.sequence.RGB = G,
-		.sequence.end = 1,
 	},
 	{
 		.prefix.cmd = 'E',
@@ -109,11 +109,43 @@ static L_data d_sequ[] = {
 		.sequence.offset = 0,
 		.sequence.down = 1,
 		.sequence.RGB = G + B,
+	},
+	{
+		.prefix.cmd = 'u',
+		.prefix.pos = 2,
+		.strobe = 40000,
+		.sequence.offset = 200,
+		.sequence.down = 0,
+		.sequence.RGB = R + B,
+	},
+	{
+		.prefix.cmd = 'u',
+		.prefix.pos = 3,
+		.strobe = 30000,
+		.sequence.offset = 360,
+		.sequence.down = 1,
+		.sequence.RGB = G + R,
+	},
+	{
+		.prefix.cmd = 'u',
+		.prefix.pos = 4,
+		.strobe = 55000,
+		.sequence.offset = 100,
+		.sequence.down = 1,
+		.sequence.RGB = G,
+	},
+	{
+		.prefix.cmd = 'u',
+		.prefix.pos = 5,
+		.strobe = 45000,
+		.sequence.offset = 400,
+		.sequence.down = 0,
+		.sequence.RGB = B,
 		.sequence.end = 1,
 	},
 	{
 		.prefix.cmd = 'E',
-		.prefix.pos = 1,
+		.prefix.pos = 5,
 	},
 };
 
@@ -173,8 +205,6 @@ int l_pos_send(int fd, L_data l)
 	int ret;
 
 	lbuffer.dbuffer = l;
-	//	lbuffer.bbuffer[0]=0x0f;
-	//	lbuffer.bbuffer[1]=0xff;
 	ret = write(fd, (uint8_t*) lbuffer.bbuffer, 7);
 	usleep(15000);
 	tcflush(fd, TCIOFLUSH);
@@ -197,20 +227,19 @@ int l_pos_send_cmd(int fd, L_data l)
  */
 int main(int argc, char** argv)
 {
-	int fd, n = 0;
-	double deg, rad;
-
-	fd = open_port();
-	if (fd == -1)
+	s.n = 0;
+	s.fd = open_port();
+	if (s.fd == -1)
 		return(EXIT_FAILURE);
 	/*
 	 * Set options for the port...
 	 */
-	deg = timer_deg_count / 360;
-	rad = timer_deg_count / (2.0 * _PI);
-	printf("\r\n %f timer counts per degree %f, counts per radian %f : counts %i ", timer_deg_count, deg, rad, (int) deg_counts(45.0));
+	s.deg = timer_deg_count / 360;
+	s.rad = timer_deg_count / (2.0 * _PI);
+	printf("\r\n %f timer counts per degree %f, counts per radian %f : counts %i ", timer_deg_count, s.deg, s.rad, (int) deg_counts(45.0));
 
-	tcgetattr(fd, &options);
+	/* set port raw and speed options */
+	tcgetattr(s.fd, &options);
 	cfsetispeed(&options, B19200);
 	cfsetospeed(&options, B19200);
 	options.c_cflag |= (CLOCAL | CREAD);
@@ -218,19 +247,29 @@ int main(int argc, char** argv)
 	options.c_cflag &= ~CSTOPB;
 	options.c_cflag &= ~CSIZE;
 	options.c_cflag |= CS8;
-	tcsetattr(fd, TCSANOW, &options);
+	options.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+	options.c_oflag &= ~(OPOST);
+	options.c_lflag &= ~(ICANON | ECHO | ISIG | IEXTEN); /* Clear ICANON and ECHO. */
+	options.c_cc[VMIN] = 1;
+	options.c_cc[VTIME] = 0;
+	tcsetattr(s.fd, TCSANOW, &options);
+	tcflush(s.fd, TCIOFLUSH);
 
-	write(fd, init_string, 8); // send init and info string
+	write(s.fd, init_string, 8); // send init, info string and line data
 
-	l_pos_send(fd, sequ[0]);
-	l_pos_send(fd, sequ[1]);
-	l_pos_send_cmd(fd, sequ[2]);
+	l_pos_send(s.fd, sequ[0]);
+	l_pos_send(s.fd, sequ[1]);
+	l_pos_send(s.fd, d_sequ[2]);
+	l_pos_send(s.fd, d_sequ[3]);
+	l_pos_send(s.fd, d_sequ[4]);
+	l_pos_send(s.fd, d_sequ[5]);
+	l_pos_send_cmd(s.fd, d_sequ[6]);
 	sleep(3);
 
 	do {
 		// state calc
-		s.pos[0] = 1.0 + ((double) n * 0.09);
-		s.pos[1] = 45.01 + ((double) n * 0.05);
+		s.pos[0] = 10.0 + ((double) s.n * 0.24);
+		s.pos[1] = 45.00 + ((double) s.n * 0.15);
 		s.strobe[0] = deg_counts(s.pos[0]);
 		s.strobe[1] = deg_counts(s.pos[1]);
 		printf("\r\n %i %i  %f %f", (int) s.strobe[0], (int) s.strobe[1], s.pos[0], s.pos[1]);
@@ -239,16 +278,16 @@ int main(int argc, char** argv)
 		d_sequ[0].strobe = s.strobe[0];
 		d_sequ[1].strobe = s.strobe[1];
 
-		//        d_sequ[0].strobe = (uint16_t) deg_counts(0.0);
-		//        d_sequ[1].strobe = (uint16_t) deg_counts(360.0);
+		//        d_sequ[0].strobe = (uint16_t) deg_counts(9.0);
+		//        d_sequ[1].strobe = (uint16_t) deg_counts(61.0);
 
-		l_pos_send(fd, d_sequ[0]);
-		l_pos_send(fd, d_sequ[1]);
+		l_pos_send(s.fd, d_sequ[0]);
+		l_pos_send(s.fd, d_sequ[1]);
 
-	} while (++n < 1450);
+	} while (++s.n < 1400);
 
 	sleep(1);
-	close(fd);
+	close(s.fd);
 	return(EXIT_SUCCESS);
 }
 
