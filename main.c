@@ -222,9 +222,15 @@ int l_pos_send_cmd(int fd, L_data l)
 	return ret;
 }
 
-double l_log(double ang)
+double l_log_deg(double ang)
 {
-	return 360.0 * log10(ang);
+	double tmp;
+	tmp = 360.0 * log10(ang);
+	if (tmp < 0.01)
+		return 0.01;
+	if (tmp > 360.0)
+		return 360.0;
+	return tmp;
 }
 
 /*
@@ -232,7 +238,7 @@ double l_log(double ang)
  */
 int main(int argc, char** argv)
 {
-	s.n = 0;
+	s.n = 1;
 	s.fd = open_port();
 	if (s.fd == -1)
 		return(EXIT_FAILURE);
@@ -275,9 +281,11 @@ int main(int argc, char** argv)
 		// state calc
 		s.pos[0] = 10.0 + ((double) s.n * 0.24);
 		s.pos[1] = 45.00 + ((double) s.n * 0.15);
+		s.pos[2] = l_log_deg((double) s.n / 100.0);
 		s.strobe[0] = deg_counts(s.pos[0]);
 		s.strobe[1] = deg_counts(s.pos[1]);
-		printf("\r\n %i %i  %f %f", (int) s.strobe[0], (int) s.strobe[1], s.pos[0], s.pos[1]);
+		s.strobe[2] = deg_counts(s.pos[2]);
+		printf("\r\n %i %i %i : %f %f %f", (int) s.strobe[0], (int) s.strobe[1], s.strobe[2], s.pos[0], s.pos[1], s.pos[2]);
 
 		// transmit state
 		d_sequ[0].strobe = s.strobe[0];
@@ -289,7 +297,7 @@ int main(int argc, char** argv)
 		l_pos_send(s.fd, d_sequ[0]);
 		l_pos_send(s.fd, d_sequ[1]);
 
-	} while (++s.n < 1400);
+	} while (++s.n < 1000);
 
 	sleep(1);
 	close(s.fd);
