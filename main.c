@@ -285,7 +285,7 @@ int main(int argc, char** argv)
 		s.strobe[0] = deg_counts(s.pos[0]);
 		s.strobe[1] = deg_counts(s.pos[1]);
 		s.strobe[2] = deg_counts(s.pos[2]);
-		printf("\r\n %i %i %i : %f %f %f", (int) s.strobe[0], (int) s.strobe[1], s.strobe[2], s.pos[0], s.pos[1], s.pos[2]);
+		printf("\r\n %i %i %i : %f %f %f", (int) s.strobe[0], (int) s.strobe[1], (int) s.strobe[2], s.pos[0], s.pos[1], s.pos[2]);
 
 		// transmit state
 		d_sequ[0].strobe = s.strobe[0];
