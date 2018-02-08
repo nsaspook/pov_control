@@ -222,6 +222,11 @@ int l_pos_send_cmd(int fd, L_data l)
 	return ret;
 }
 
+double l_log(double ang)
+{
+	return 360.0 * log10(ang);
+}
+
 /*
  * 
  */
