@@ -290,12 +290,14 @@ int main(int argc, char** argv)
 		// transmit state
 		d_sequ[0].strobe = s.strobe[0];
 		d_sequ[1].strobe = s.strobe[1];
+                d_sequ[2].strobe = s.strobe[2];
 
 		//        d_sequ[0].strobe = (uint16_t) deg_counts(9.0);
 		//        d_sequ[1].strobe = (uint16_t) deg_counts(61.0);
 
 		l_pos_send(s.fd, d_sequ[0]);
 		l_pos_send(s.fd, d_sequ[1]);
+                l_pos_send(s.fd, d_sequ[2]);
 
 	} while (++s.n < 1000);
 
